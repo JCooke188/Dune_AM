@@ -14,7 +14,7 @@ close all;
 % lot of data and it's being run serially in MATLAB. Sorry, I didn't know
 % how to use python at time of writing.
 
-myDir = dir('./Smooth/May1_LogSpaced/z*');
+myDir = dir('./AlkaliFlat/OrigData/z*');
 
 N = length(myDir);
 
@@ -53,7 +53,7 @@ clear temp* myDir cx cr urms_x xyz u_x
 % and 1750m) hence why the previous data which was probed at many more was
 % truncated to only these four locations. 
 
-myDir = dir('./Smooth/Combined/z*comp*');
+myDir = dir('./AlkaliFlat/Data/z*comp*');
 
 N = length(myDir);
 
@@ -306,7 +306,7 @@ clear temp* clear bot1 bot 2
 
 %% Load Dune Data
 
-myDir = dir('./DuneField/Combined/x_*');
+myDir = dir('./DuneField/DuneData/x_*');
 
 df_N = length(myDir);
 
