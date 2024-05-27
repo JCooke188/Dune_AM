@@ -26,6 +26,6 @@ Fourth Col-End Col: Data corresponding to either x varying or z varying data
 
 #------- The Script -------#
 
-The script is a MATLAB script compatible with MATLAB 2019b and subsequent releases. I tried to comment it as much as I could to ensure that anyone could read the code and understand what was going on. If the code doesn't run on the first pass, please read the error codes from MATLAB and try and figure out what might be the issue. If things persist, please then feel free to contact me at justincooke96@gmail.com. At the end of the code, the Figures used in the manuscript are output. Other figures included in the code are for sanity checks and early mock-ups of figures that could be interesting to you. 
+To reproduce the figures, I have added 3 *.m files, one for each of the figures. These files are compatible with MATLAB 2019b and subsequent releases. I tried to comment it as much as I could to ensure that anyone could read the code and understand what was going on. If the code doesn't run on the first pass, please read the error codes from MATLAB and try and figure out what might be the issue. If things persist, please then feel free to contact me at justincooke96@gmail.com. At the end of each script, the Figures used in the manuscript are output. Other figures included in the code are for sanity checks and early mock-ups of figures that could be interesting to you. 
 
 Thanks for your interest in my work! If you found any of this data or the analysis insightful, please make sure to cite the paper! 
