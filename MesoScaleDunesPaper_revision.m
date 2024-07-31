@@ -296,6 +296,48 @@ clear myName myFolder loadMe df_xyz df_ux cx cr
 
 x_hat = x - 1850;
 
+%% Load data for RSS
+
+myDir = dir('./DuneField/DuneData/RSSData/x*');
+
+Ndir = length(myDir);
+
+iuw = 0;
+
+
+for i = 1:Ndir
+    
+
+    myName = myDir(i).name;
+    myFolder = myDir(i).folder;
+    
+    myPath = strcat(myFolder,'/',myName);
+    
+    data = load(myPath);
+    
+    if contains(myPath,'comp(u_rey,1)')
+        iuw = iuw + 1;
+        uw{iuw} = data(:,4:end);
+    end
+        
+end
+
+clear my* Ndir i* data
+
+
+%% Time-averaged RSS
+
+
+N_uw = length(uw);
+
+for i = 1:N_uw
+    
+    tempuw = uw{i};
+    UW{i} = mean(tempuw);
+    
+end
+    
+clear temp*
 
 
 %% Dune specific data
@@ -423,31 +465,31 @@ clear temp* clear ELust_temp %topprod top bot
 
 %% Plot RSS
 
-% close all;
+close all;
 
-Cooke_Colors = ["White","#babd00","#92f240","#00de69","#00b995","#00999c",...
-    "#007c92","#00627f","#004a70","#0b1b84","White"]; % Yellow to Blue Gradient
+set(0,'defaultTextInterpreter','latex');
 
-% myColors = ["#daf8e3", "#97ebdb", "#00c2c7", "#0086ad", "#005582", ...
-%     "#ffc100", "#ff9a00", "#ff7400", "#bf0000" ];
+myColors = [ "Black", "#daf8e3", "#97ebdb", "#00c2c7", "#0086ad", "#005582", ...
+    "#ffc100", "#ff9a00", "#ff7400", "#bf0000", "#000000" ];
 
 delta_ibl = [0.06356,0.1665,0.1665,0.1373,0.1372,0.2968,0.4362,...
     0.4362,0.5289].*delta;
 
+z_plot = linspace(1.5,400,100);
 uw_plot = cell2mat(UW');
 
 figure();
 tiledlayout(1,2);
 p1 = nexttile;
-%plot(uw_plot(1,:),z,'k--','LineWidth',2); hold on;
+plot(uw_plot(1,:),z_plot,'k--','LineWidth',2); hold on;
 for i = 2:10
-        plot(uw_plot(i,:),z,'Color',Cooke_Colors(i),'LineWidth',2); hold on;
+        plot(uw_plot(i,:),z_plot,'Color',myColors(i),'LineWidth',2); hold on;
 end
 set(gca,'FontName','SansSerif','FontSize',20);
 ylabel('$z$','FontName','SansSerif','FontSize',36);
 xlabel('$\langle u^\prime w^\prime \rangle$','FontName','SansSerif','FontSize',36);
 ylim([0 200]);
-legend({'$\hat{x}_1$','$\hat{x}_2$','$\hat{x}_3$',...
+legend({'Alkali Flat','$\hat{x}_1$','$\hat{x}_2$','$\hat{x}_3$',...
     '$\hat{x}_4$','$\hat{x}_5$','$\hat{x}_6$','$\hat{x}_7$',...
     '$\hat{x}_8$','$\hat{x}_9$'},'Interpreter','Latex',...
     'Location','NorthWest','NumColumns',3,'FontSize',30);
@@ -457,12 +499,12 @@ uw_plot2 = uw_plot(2:end,:);
 
 p2 = nexttile;
 % figure();
-%plot(uw_plot(1,:)./(0.12^2),z./30,'k--','LineWidth',2); hold on;
+plot(uw_plot(1,:)./(0.12^2),z_plot./30,'k--','LineWidth',2); hold on;
 for i = 2:10
     if i == 2
-        plot(uw_plot2(i,:)./(0.12^2),z./30,'Color',Cooke_Colors(i),'LineWidth',2); hold on;
+        plot(uw_plot2(i,:)./(0.12^2),z_plot./30,'Color',myColors(i),'LineWidth',2); hold on;
     else
-        plot(uw_plot2(i,:)./(0.12^2),z./cookeCorr(i),'Color',Cooke_Colors(i),'LineWidth',2); hold on;
+        plot(uw_plot2(i,:)./(0.12^2),z_plot./delta_ibl(i-1),'Color',myColors(i),'LineWidth',2); hold on;
     end
 end
 set(gca,'FontName','SansSerif','FontSize',20);
@@ -478,7 +520,7 @@ close all;
 % 4C Inset
 figure();
 for i = 2:df_Nx
-semilogx(df_z,df_R{i},'Color',myColors(i),'LineWidth',1.25); hold on;
+    semilogx(df_z,df_R{i},'Color',myColors(i),'LineWidth',1.25); hold on;
 end
 semilogx(z,R,'k-.','LineWidth',1.5);
 yline(0,'--k');
@@ -493,9 +535,9 @@ figure();
 semilogx(z/30,R,'k--','LineWidth',2); hold on;
 for i = 2:df_Nx
     if i == 2 
-        semilogx(df_z/30,df_R{i},'Color',myColors(i),'LineWidth',1.25);
+        semilogx(df_z./30,df_R{i},'Color',myColors(i),'LineWidth',1.25);
     else
-        semilogx(df_z/delta_ibl(i),df_R{i},'Color',myColors(i),'LineWidth',1.25); 
+        semilogx(df_z./delta_ibl(i-1),df_R{i},'Color',myColors(i),'LineWidth',1.25); 
     end
 end
 yline(0,'--k');
