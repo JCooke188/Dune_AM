@@ -212,54 +212,6 @@ for i = 1:Nz
     
 end
 
-%% Plot Sanity Check
-
-close all;
-
-zl_ref = 5;
-zs_ref = 5;
-
-figure()
-tiledlayout(3,1)
-p1 = nexttile;
-plot(T,up_rms{zs_ref});
-ylabel('u^+','Interpreter','tex','FontName','SansSerif','FontSize',16);
-% myTitle = strcat('Z_L= ',num2str(round(z(zl_ref))),' & Z_S= ',...
-%     num2str(round(z(zs_ref))),' & \lambda_c =',num2str(lxp_cutoff));
-% title(myTitle);
-ylim([-10,10]);
-yline(0);
-text(0.25,7.5,sprintf('A'),'FontName','SansSerif','FontSize',16);
-set(gca,'FontSize',16);
-
-p2 = nexttile;
-ap1 = plot(T,uL{zl_ref},T,EnvL_uS{zs_ref}-mean(EnvL_uS{zs_ref}));
-ap2 = yline(0);
-ylabel('u^+_L','Interpreter','tex','FontName','SansSerif','FontSize',16);
-legend([ap1(1),ap1(2)],'u^+_L','E_L(u^+_S)','','Interpreter','tex',...
-    'FontName','SansSerif','FontSize',16,'Box','off','Orientation','Horizontal');
-ylim([-1,1]);
-set(gca,'FontSize',16);
-text(0.25,.75,sprintf('B'),'FontName','SansSerif','FontSize',16);
-
-p3 = nexttile;
-ap3 = plot(T,uS{zs_ref},T,Env_uS{zs_ref});
-ap4 = yline(0);
-ylabel('u^+_S','Interpreter','tex','FontName','SansSerif','FontSize',16);
-legend([ap3(1),ap3(2)],'u^+_S','E(u^+_S)','','Interpreter','tex',...
-    'FontName','SansSerif','FontSize',16,'Box','off','Orientation',...
-    'Horizontal','Location','SouthEast');
-ylim([-10,10]);
-text(0.25,7.5,sprintf('C'),'FontName','SansSerif','FontSize',16);
-
-linkaxes([p1,p2,p3],'x')
-xticklabels([p1,p2],{});
-xlabel('tU_\infty / \delta','Interpreter','tex','FontName','SansSerif','FontSize',16);
-xlim([0,30]);
-set(gca,'FontSize',16);
-
-clear ap* ax1 p1 p2 p3
-
 
 %% AM Coeff Calculation - Single Point
 
@@ -366,39 +318,6 @@ end
 
 clear myName myFolder loadMe
 
-myDir = dir('./DuneField/WSS/SWSS*');
-
-surf_N = length(myDir);
-
-cx = 0;
-cr = 0;
-
-for i = 1:surf_N
-   
-    myName = myDir(i).name;
-    myFolder = myDir(i).folder;
-    
-    loadMe = strcat(myFolder,'/',myName);
-    
-    if contains(loadMe,'README')
-        swss_xyz = load(loadMe);
-        swss_xyz = swss_xyz(:,3:end);
-        cx = cx + 1;
-        cx = cx + 1;
-        swss_x(cx) = round(swss_xyz(1,2));
-        swss_y{cx} = swss_xyz;
-    else
-        swss_tau = load(loadMe);
-        swss_tau = swss_tau(:,4:end);
-        cr = cr + 1;
-        swss_tauw{cr} = swss_tau;
-    end
-    
-    
-end
-
-clear myName myFolder loadMe cr cx swss_xyz swss_tau
-
 % Note that df_uxdata is set up as the cell # represents the x location,
 % the size of each cell is Nt x Nz
 
@@ -423,50 +342,49 @@ for i = 1:df_N/2
 
 end
 
-swss_Nx = surf_N/2;
+%% Load data for RSS
 
-for i = 1:swss_Nx
-   
-    temp = swss_tauw{i};
-    swss_tau_bar{i} = mean(temp); % time average
-    swss_tau_da(i) = mean(swss_tau_bar{i}); % average across y
+myDir = dir('./DuneField/DuneData/RSSData/x*');
+
+Ndir = length(myDir);
+
+iuw = 0;
+
+
+for i = 1:Ndir
     
+
+    myName = myDir(i).name;
+    myFolder = myDir(i).folder;
+    
+    myPath = strcat(myFolder,'/',myName);
+    
+    data = load(myPath);
+    
+    if contains(myPath,'comp(u_rey,1)')
+        iuw = iuw + 1;
+        uw{iuw} = data(:,4:end);
+    end
+        
 end
 
-df_taubar = mean(surf_tau);
+clear my* Ndir i* data
 
-flat_wss_x = [715 1100 1385 1615];
-flat_wss = [0.02098, 0.02075, 0.02093, 0.02089];
-smooth_wss = mean(flat_wss);
 
-forTrend = [flat_wss, swss_taubar];
-forXTrend = [flat_wss_x,swss_x];
+%% Time-averaged RSS
 
-[p,S] = polyfit(swss_x(1:2:end),swss_taubar(1:2:end)./smooth_wss,7);
-y_fit = polyval(p,swss_x(1:2:end),S);
 
-%%
+N_uw = length(uw);
 
-close all;
+for i = 1:N_uw
+    
+    tempuw = uw{i};
+    UW{i} = mean(tempuw);
+    
+end
+    
+clear temp*
 
-x_hat = x - 1850;
-
-figure();
-yyaxis left
-plot(surf_xyz(:,1)-1850,mean(surf_tau),'Color',"#D95319"); hold on;
-plot(x_hat,swss_taubar,'kdiamond','MarkerFaceColor',"blue");
-ylabel('\tau_{wall} [Pa]');
-ax1 = gca;
-ax1.YColor = "#D95319";
-yyaxis right
-area(surf_xyz(:,1)-1850,surf_xyz(:,end),'FaceColor',"#808080",...
-    'FaceAlpha',0.2,'EdgeColor',"#808080");
-ax2 = gca;
-ax2.YColor = "#808080";
-ylim([0 20]);
-ylabel('z [m]');
-xlabel('x-x_0');
-xlim([-1846 6300]);
 
 %% Dune specific data
 
@@ -587,169 +505,59 @@ end
 
 clear temp* clear ELust_temp %topprod top bot
 
-%% DF Single-Point Plot
+
+
+
+
+%% Plot RSS
 
 close all;
 
-% Didn't use this plot, but shows R_AM at each individual x-location 
+set(0,'defaultTextInterpreter','latex');
+
+myColors = [ "Black", "#daf8e3", "#97ebdb", "#00c2c7", "#0086ad", "#005582", ...
+    "#ffc100", "#ff9a00", "#ff7400", "#bf0000", "#000000" ];
+
+delta_ibl = [0.06356,0.1665,0.1665,0.1373,0.1372,0.2968,0.4362,...
+    0.4362,0.5289].*delta;
+
+z_plot = linspace(1.5,400,100);
+uw_plot = cell2mat(UW');
 
 figure();
-
-for i = 2:df_Nx
-    
-    nexttile;
-    semilogx(zdelta,R); hold on;
-    semilogx(df_z/delta,df_R{i}); hold on
-    yline(0,'--k');
-    ylim([-0.8,0.5]);
-    xlabel('z/\delta');
-    ylabel('R(z/\delta)');
-    myTitle = strcat(num2str(round(x(i))),' [m]');
-    title(myTitle);
-    legend('Smooth Playa','Dunes','Location','NorthEast');
+tiledlayout(1,2);
+p1 = nexttile;
+plot(uw_plot(1,:),z_plot,'k--','LineWidth',2); hold on;
+for i = 2:10
+        plot(uw_plot(i,:),z_plot,'Color',myColors(i),'LineWidth',2); hold on;
 end
+set(gca,'FontName','SansSerif','FontSize',20);
+ylabel('$z$','FontName','SansSerif','FontSize',36);
+xlabel('$\langle u^\prime w^\prime \rangle$','FontName','SansSerif','FontSize',36);
+ylim([0 200]);
+legend({'Alkali Flat','$\hat{x}_1$','$\hat{x}_2$','$\hat{x}_3$',...
+    '$\hat{x}_4$','$\hat{x}_5$','$\hat{x}_6$','$\hat{x}_7$',...
+    '$\hat{x}_8$','$\hat{x}_9$'},'Interpreter','Latex',...
+    'Location','NorthWest','NumColumns',3,'FontSize',30);
 
 
+uw_plot2 = uw_plot(2:end,:);
 
-%% Create <u'u'>
-
-for i = 1:df_Nx
-    
-    for j = 1:df_Nz
-   
-        temp = df_upplus{i}(:,j);
-        store_dfuu{j} = temp.*temp;
-        
+p2 = nexttile;
+% figure();
+plot(uw_plot(1,:)./(0.12^2),z_plot./30,'k--','LineWidth',2); hold on;
+for i = 2:10
+    if i == 2
+        plot(uw_plot2(i,:)./(0.12^2),z_plot./30,'Color',myColors(i),'LineWidth',2); hold on;
+    else
+        plot(uw_plot2(i,:)./(0.12^2),z_plot./delta_ibl(i-1),'Color',myColors(i),'LineWidth',2); hold on;
     end
-    
-    mat_dfuu = cell2mat(store_dfuu);
-    df_upup{i} = mat_dfuu;
-    df_upupbar{i} = mean(df_upup{i});
-    
 end
+set(gca,'FontName','SansSerif','FontSize',20);
+ylabel('$z/\hat{\delta}$','FontName','SansSerif','FontSize',36);
+xlabel('$\langle u^\prime w^\prime \rangle/u^2_{\tau,0}$','FontName','SansSerif','FontSize',36);
+ylim([0 4]);
 
-
-
-%% Calculate IBL Height using the method of Li et al.
-% Ref: M Li, et al., Experimental study of a turbulent boundary layer with
-% a rough-to-smooth change in surface conditions at high Reynolds numbers.
-% J. Fluid Mech. 923, A18 (2021)
-
-% Highest avg velocity data at last station
-U_infty = df_ubar{end}(end);
-
-for i = 1:df_Nx
-   
-    % Calculate u'u'/u_0^2 first
-    temp = df_uprime{i};
-    uu_u0u0{i} = (temp.*temp)./(U_infty^2);
-    uu_u0u0bar{i} = mean(uu_u0u0{i});
-    
-    delta_0 = 300;
-    
-    x_hat(i) = x(i) - 1850;
-    xh_delta0(i) = x_hat(i)/delta_0;
-    log_xhd(i) = log10(xh_delta0(i));
-    
-end
-
-for i = 2:df_Nx
-   
-    duu = uu_u0u0bar{i} - uu_u0u0bar{i-1};
-    
-    dlogxhd = log_xhd(i) - log_xhd(i-1);
-    
-    ratio{i-1} = duu/dlogxhd;
-    
-    
-end
-
-%% Determine IBL Location
-
-% Need to determine where the value of the difference being calculated goes
-% to zero. Threshold is ~10^-4 for where values begin to flatten out.
-
-close all;
-
-figure();
-
-xhatdelta = [1.22,2.45,3.89,5.56,7.52,9.79,12.45,15.55,19.17];
-
-for i = 1:2:df_Nx-2
-    
-    nexttile;
-    semilogx(df_z./delta,ratio{i},'ko','MarkerFace','red'); hold on;
-    xlabel('z/\delta_{ABL}','Interpreter','tex','FontSize',16,'FontName','SanSerif');
-    ylabel('a(z)','Interpreter','tex','FontSize',16,'FontName','SanSerif');
-       
-    set(gca,'FontSize',16,'FontName','SanSerif');
-end
-
-%% Now plot IBL heights and find the data fit 
-
-
-%delta_ibl = [0,0.109,0.1943,0.1943,0.1602,0.1602,0.2355,0.2856,...
-%    0.4198,0.5089].*delta;
-delta_ibl = [0,0.06356,0.1665,0.1665,0.1373,0.1372,0.2968,0.4362,...
-     0.4362,0.5289].*delta;
-% Fit type -> delta_ibl/z02 = a*(x/z02)^b
-ft = fittype('a*x^b');
-f = fit(x_hat',delta_ibl'./delta,ft,'StartPoint',[0,0]);
- 
-
-figure();
-plot(x_hat,delta_ibl./delta,'k^','MarkerFace','blue'); hold on;
-plot(f,'b');
-text(-1750,200,sprintf('Li Method:\na = %f\nb = %f',f.a,f.b),'Color','blue',...
-    'FontName','SansSerif','FontSize',14);
-
-xlabel('x - x_0 [m]','FontName','SansSerif','FontSize',16);
-ylabel('\delta_{ibl}','FontName','SansSerif','FontSize',16);
-legend('Li \it{et al} Method',...
-    'location','northwest','Box','off','NumColumns',2,'Orientation','Horizontal');
-set(gca,'FontSize',16,'FontName','SansSerif');
-yticks([0 100 200 300]);
-xticks([-2000 0 2000 4000 6000]);
-xticklabels({'-2000','0','2000','4000','6000'});
-xlim([-2000 6000]);
-
-%% Single-Point Dune AM Normalized with delta_ibl
-
-% Initial plot but opted to create two separate plots then stitched
-% together.
-
-close all;
-
-
-myColors = [ "#daf8e3", "#97ebdb", "#00c2c7", "#0086ad", "#005582", ...
-    "#ffc100", "#ff9a00", "#ff7400", "#bf0000", "	#000000" ];
-
-figure();
-ax1 = subplot(1,2,1);
-for i = 2:df_Nx
-semilogx(df_z,df_R{i},'Color',myColors(i),'LineWidth',1.25); hold on;
-end
-semilogx(z,R,'k-.','LineWidth',1.5);
-yline(0,'--k');
-ylim([-0.8,0.5]);
-xlim([0 400]);
-xlabel('$z$','Interpreter','latex');
-ylabel('$R(z)$','Interpreter','latex');
-ax1.FontSize = 16;
-
-ax2 = subplot(1,2,2);
-for i = 2:df_Nx
-semilogx(df_z/delta_ibl(i),df_R{i},'Color',myColors(i),'LineWidth',1.25); hold on;
-end
-semilogx(z/30,R,'k-.','LineWidth',1.5);
-% title('Collapse of R_{AM} with \delta_{ibl} in Dune Field');
-yline(0,'--k');
-ylim([-0.8,0.5]);
-xlim([5*10^-3 10^1]);
-xlabel('$z/\delta_{IBL}$','Interpreter','latex');
-ylabel('$R(z/\delta_{IBL})$','Interpreter','latex');
-
-ax2.FontSize = 16;
 
 %% FIG 4B and 4C
 
@@ -758,7 +566,7 @@ close all;
 % 4C Inset
 figure();
 for i = 2:df_Nx
-semilogx(df_z,df_R{i},'Color',myColors(i),'LineWidth',1.25); hold on;
+    semilogx(df_z,df_R{i},'Color',myColors(i),'LineWidth',1.25); hold on;
 end
 semilogx(z,R,'k-.','LineWidth',1.5);
 yline(0,'--k');
@@ -773,9 +581,9 @@ figure();
 semilogx(z/30,R,'k--','LineWidth',2); hold on;
 for i = 2:df_Nx
     if i == 2 
-        semilogx(df_z/30,df_R{i},'Color',myColors(i),'LineWidth',1.25);
+        semilogx(df_z./30,df_R{i},'Color',myColors(i),'LineWidth',1.25);
     else
-        semilogx(df_z/delta_ibl(i),df_R{i},'Color',myColors(i),'LineWidth',1.25); 
+        semilogx(df_z./delta_ibl(i-1),df_R{i},'Color',myColors(i),'LineWidth',1.25); 
     end
 end
 yline(0,'--k');
@@ -788,187 +596,7 @@ ylabel('$R(z/\delta_{IBL})$','Interpreter','latex',...
 set(gca,'FontName','SansSerif','FontSize',16);
 
 
-%% FIGURE 2 IN MANUSCRIPT
-
-close all;
-
-lim1 = surf_xyz(1,1)-1850;
-lim2 = surf_xyz(end,1)-1850;
-
-delta_ibl = [0.006701,0.109,0.1943,0.1943,0.1602,0.1602,0.2355,0.2856,...
-    0.4198,0.5089].*delta;
-
-figure();
-
-plot(surf_xyz(:,1)-1850,surf_xyz(:,end)./delta,'k','LineWidth',2); hold on;
-fp1 = plot(f,'b');
-fp1.LineWidth = 2;
-for i = 1:9
-    plot(x_hat(i),delta_ibl(i)./delta,'kdiamond','MarkerFaceColor',...
-        myColors(i),'MarkerSize',10);
-end
-plot(-100,0.003,'kdiamond','MarkerFace','white','MarkerSize',10);
-fp1 = plot(f,'b');
-fp1.LineWidth = 2.5;
-asl_line = yline(0.1); %Added a line to signify delta_asl
-asl_line.LineWidth = 2.5;
-asl_line.LineStyle = '--';
-ylabel('$z/\delta_{ABL}$','FontSize',16,'FontName','SansSerif',...
-    'interpreter','latex');
-xlabel('$\hat{x} = x - x_0 [m]$','FontSize',16,'FontName','SansSerif',...
-    'interpreter','latex');
-legend('off')
-xlim([lim1 lim2]);
-ax = gca;
-ax.FontSize = 16;
-
-%% Figure 3 in Manuscript
-
-% First load the data
-
-myDir = dir('./DuneField/WSS/Slice/SpanwiseWSS*');
-
-surf_N = length(myDir);
-
-cx = 0;
-cr = 0;
-
-swss_x = zeros();
-
-tic;
-
-for i = 1:surf_N
-   
-    myName = myDir(i).name;
-    myFolder = myDir(i).folder;
-    
-    loadMe = strcat(myFolder,'/',myName);
-    
-    if contains(loadMe,'README')
-        swss_xyz = load(loadMe);
-        cx = cx + 1;
-        swss_x(cx) = round(swss_xyz(1,2));
-        swss_z{cx} = swss_xyz(:,end);
-    else
-        swss_temp = load(loadMe);
-        cr = cr + 1;
-        swss_tau{cr} = swss_temp(end-149:end,4:end);
-    end
-    
-    
-end
-
-toc;
-
-clear myName myFolder loadMe cr cx swss_xyz swss_temp
 
 
-%% Average the Data
+%% END
 
-% Get Average dune height k_a at each spanwise slice
-
-k_a = zeros(40,1);
-k_rms = zeros(40,1);
-
-for i = 1:40
-   
-    temp = swss_z{i};
-    k_a(i) = mean(temp);
-    k_rms(i) = rms(temp-k_a(i));
-    
-end
-
-clear temp
-
-% Average the full field data in time only
-surf_tau_bar = mean(surf_tau);
-surf_utau_bar = (surf_tau_bar./rho).^(0.5);
-
-% Average the spanwise data in time and space
-swss_Nx = surf_N/2;
-rho = 1.23; % Density of the fluid (air) [kg/m^3]
-
-for i = 1:swss_Nx
-   
-    temp = swss_tau{i};
-    temp_utau = (temp./rho).^(0.5);
-    swss_tau_bar{i} = mean(temp); % time average
-    span_utau_bar{i} = mean(temp_utau); % time average
-    swss_tau_da(i) = mean(swss_tau_bar{i}); % average across y
-    span_utau_da(i) = mean(span_utau_bar{i}); % average across y
-    
-end
-
-
-
-%% Create Figure 3
-
-close all;
-
-flat_wss_x = [715 1100 1385 1615];
-flat_wss = [0.02098, 0.02075, 0.02093, 0.02089];
-smooth_wss = mean(flat_wss);
-
-% Add Curve Fit Line
-
-% myP1 = polyfit(swss_x(1:8)-1850,swss_tau_da(1:8)./smooth_wss,1);
-% myF1 = polyval(myP1,swss_x(1:8)-1850);
-% 
-% myP2 = polyfit(swss_x(8:end)-1850,swss_tau_da(8:end)./smooth_wss,1);
-% myF2 = polyval(myP2,swss_x(8:end)-1850);
-
-% Add moving average
-swss_tau_movMean = movmean((swss_tau_da./smooth_wss),5);
-
-
-figure();
-yyaxis left
-plot(surf_xyz(:,1)-1850,surf_tau_bar./smooth_wss,...
-    'Color',"#CA1F00",'LineWidth',1.25); hold on;
-plot(swss_x-1850,swss_tau_da./smooth_wss,...
-    'k^','MarkerFaceColor',"#0037CA",'MarkerSize',7.5);
-% plot(swss_x(1:8)-1850,myF1,'k-','LineWidth',1.4);
-% plot(swss_x(8:end)-1850,myF2,'k-','LineWidth',1.4);
-plot(swss_x-1850,swss_tau_movMean,'-','LineWidth',1.5,'Color',...
-    'black'); %'#0037CA');
-ylabel('$\tau_{b}/\tau_0$','Interpreter','latex',...
-    'FontName','SansSerif','FontSize',16);
-ax1 = gca;
-ax1.YColor = "#CA1F00";
-yyaxis right
-area(surf_xyz(:,1)-1850,surf_xyz(:,end)./300,'FaceColor',"#808080",...
-    'FaceAlpha',0.2,'EdgeColor',"#808080"); hold on;
-errorbar(swss_x-1850,k_a./300,k_rms./300,'o','MarkerSize',7.5,...
-    'Color','black','MarkerFaceColor','#808080');
-ax2 = gca;
-ax2.YColor = "#808080";
-ylim([0 0.25]);
-ylabel('$z/\delta_{ABL}$','Interpreter','latex',...
-    'FontName','SansSerif','FontSize',16);
-xlabel('$\hat{x} = x - x_0 [m]$','Interpreter','latex',...
-    'FontName','SansSerif','FontSize',16);
-xlim([-1846 6300]);
-ax1.FontSize = 16;
-
-%% Just dune height data
-
-close all;
-
-figure();
-area(surf_xyz(:,1)-1850,surf_xyz(:,end)./300,'FaceColor',"#808080",...
-    'FaceAlpha',0.2,'EdgeColor',"#808080"); hold on;
-errorbar(swss_x-1850,k_a./300,k_rms./300,'o','MarkerSize',7.5,...
-    'Color','black','MarkerFaceColor','#808080');
-%ylim([0 0.075]);
-ylabel('$z/\delta$','Interpreter','latex',...
-    'FontName','SansSerif','FontSize',16);
-xlabel('$\hat{x} = x - x_0$ [m]','Interpreter','latex',...
-    'FontName','SansSerif','FontSize',16);
-xlim([-1846 6300]);
-ax1 = gca;
-ax1.FontSize = 16;
-
-
-
-
-%% EXIT
