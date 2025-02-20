@@ -116,3 +116,7 @@ AlkaliFlat/OrigData/z_272.1.zip
 AlkaliFlat/OrigData/z_329.9.zip
 AlkaliFlat/OrigData/z_400.zip
 DuneField/WSS/WallStress.tar.xz
+DuneField/WSS/DontUseAtThisMoment_WallStress.tar.xz
+DuneField/WSS/WallStress.tar.xz
+*.pdf
+DuneField/WSS/WallStress.tar.xz
