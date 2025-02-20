@@ -13,10 +13,10 @@ set(0,'defaultTextInterpreter','latex');
 %% Load Data
 
 % Local Directory
-myDir = dir('./DuneField/Combined/x_*');
+% myDir = dir('./DuneField/Combined/x_*');
 
 % On GitHub
-% myDir = dir('./DuneField/DuneData/x_*');
+myDir = dir('./DuneField/DuneData/x_*');
 
 df_N = length(myDir);
 
@@ -46,7 +46,7 @@ for i = 1:df_N
 end
 
 clear myName myFolder loadMe df_xyz df_ux cx cr
-
+%%
 % Local and GitHub have same Directory names
 myDir = dir('./DuneField/WSS/WallStress*');
 
@@ -233,7 +233,7 @@ close all;
 lim1 = surf_xyz(1,1)-1850;
 lim2 = surf_xyz(end,1)-1850;
 
-figure();
+fig = figure('units','pixels','position',[100 400 1400 400]);
 
 plot(surf_xyz(:,1)-1850,surf_xyz(:,end)./delta_abl,'k','LineWidth',2); hold on;
 fp1 = plot(f,'b');
@@ -248,9 +248,11 @@ fp1.LineWidth = 2.5;
 asl_line = yline(0.1); %Added a line to signify delta_asl
 asl_line.LineWidth = 2.5;
 asl_line.LineStyle = '--';
-ylabel('$z/\delta_{ABL}$','FontSize',16,'FontName','SansSerif');
-xlabel('$\hat{x} = x - x_0 [m]$','FontSize',16,'FontName','SansSerif');
+ylabel('$z/\delta$','FontSize',18,'FontName','SansSerif');
+xlabel('$\hat{x} = x - x_0 [m]$','FontSize',18,'FontName','SansSerif');
 legend('off')
 xlim([lim1 lim2]);
 ax = gca;
-ax.FontSize = 16;
+ax.FontSize = 18;
+saveas(fig,'./test.pdf');
+exportgraphics(fig,'./testexport.pdf','ContentType','vector');
